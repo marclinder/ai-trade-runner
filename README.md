@@ -18,6 +18,19 @@ A modular, AI-augmented trading bot built with TypeScript, AWS CDK, and broker a
 
 ---
 
+## Deployment
+
+To deploy the stack from ./infra/cdk:
+
+```bash
+npx cdk bootstrap --profile <profile>
+npx cdk deploy --profile <profile>
+```
+
+You can customize the profile name (e.g. `trade-bot`) in `.aws/credentials`.
+
+---
+
 ## 🚀 Status
 
 🔧 **In Progress**  
