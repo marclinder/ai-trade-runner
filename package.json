@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/marclinder/ai-trade-runner#readme",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
     "@types/node": "^24.1.0",
     "aws-cdk": "^2.1023.0"
   },
