@@ -4,17 +4,23 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as path from 'path';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export class TradingStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const agentLambda = new lambda.Function(this, 'AgentLambda', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.resolve(__dirname, '../../../src/agent')),
+    const agentLambda = new NodejsFunction(this, 'AgentLambda', {
+      entry: path.resolve(__dirname, '../../../src/agent/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_18_X,
+      bundling: {
+        sourceMap: true,
+        sourcesContent: true,
+        externalModules: ['aws-sdk'], // already available in Lambda runtime
+      },
       environment: {
-        MODE: 'paper', // Change to 'live' in production
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
 
