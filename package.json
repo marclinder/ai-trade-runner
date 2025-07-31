@@ -15,5 +15,15 @@
   "bugs": {
     "url": "https://github.com/marclinder/ai-trade-runner/issues"
   },
-  "homepage": "https://github.com/marclinder/ai-trade-runner#readme"
+  "homepage": "https://github.com/marclinder/ai-trade-runner#readme",
+  "devDependencies": {
+    "aws-cdk": "^2.1023.0"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-events": "^1.203.0",
+    "@aws-cdk/aws-events-targets": "^1.203.0",
+    "@aws-cdk/aws-lambda": "^1.203.0",
+    "aws-cdk-lib": "^2.208.0",
+    "constructs": "^10.4.2"
+  }
 }

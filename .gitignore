@@ -1,32 +1,34 @@
-# Node
+# Node.js
 node_modules/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Build outputs
+# Build outputs (only compiled, not source)
 dist/
 build/
-lib/
+.out/
+.esbuild/
+.tmp/
+
+# CDK
 cdk.out/
-
-# Environment
-.env
-.env.local
-.env.production
-.env.development
-.env.*.local
-
-# CDK context
 cdk.context.json
 
-# IDEs
+# AWS SAM / Serverless Framework (in case you mix later)
+.aws-sam/
+.serverless/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE / OS
 .vscode/
 .idea/
-*.swp
-
-# OS
 .DS_Store
 Thumbs.db
 
@@ -34,19 +36,5 @@ Thumbs.db
 coverage/
 .nyc_output/
 
-# AWS SAM/Serverless
-.aws-sam/
-.serverless/
-
-# TS build artifacts
-*.tsbuildinfo
-
-# Nx (if re-added later)
+# Nx (in case re-added)
 nx-report.html
-
-# JetBrains
-*.iml
-out/
-
-# Secrets (make sure .env.example exists)
-secrets.*
