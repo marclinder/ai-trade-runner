@@ -6,6 +6,12 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as path from 'path';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
+import * as dotenv from 'dotenv';
+
+// Load the .env from the root directory
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+
 export class TradingStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -22,6 +28,8 @@ export class TradingStack extends cdk.Stack {
       },
       environment: {
         NODE_OPTIONS: '--enable-source-maps',
+        ALPACA_API_KEY: process.env.ALPACA_API_KEY ?? '',
+        ALPACA_SECRET_KEY: process.env.ALPACA_SECRET_KEY ?? ''
       },
     });
 

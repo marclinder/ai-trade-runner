@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "invoke-agent": "ts-node scripts/invokeAgent.ts",
-    "simulate-agent": "ts-node scripts/simulateAgentLocally.ts"
+    "invoke:agent": "npx ts-node scripts/invokeAgent.ts",
+    "simulate:agent": "npx ts-node scripts/simulateAgentLocally.ts"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@alpacahq/alpaca-trade-api": "^3.1.3",
     "@aws-cdk/aws-events": "^1.203.0",
     "@aws-cdk/aws-events-targets": "^1.203.0",
     "@aws-cdk/aws-lambda": "^1.203.0",
