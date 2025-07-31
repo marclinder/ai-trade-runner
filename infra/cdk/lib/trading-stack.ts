@@ -11,6 +11,7 @@ export class TradingStack extends cdk.Stack {
     super(scope, id, props);
 
     const agentLambda = new NodejsFunction(this, 'AgentLambda', {
+      functionName: 'AgentLambda',
       entry: path.resolve(__dirname, '../../../src/agent/index.ts'),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_18_X,
