@@ -4,22 +4,22 @@
   "description": "Modular AI-augmented trading bot for stocks, crypto, and options using Alpaca, AWS CDK, and Nx.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "invoke-agent": "ts-node scripts/invokeAgent.ts",
+    "simulate-agent": "ts-node scripts/simulateAgentLocally.ts"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/marclinder/ai-trade-runner.git"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/marclinder/ai-trade-runner/issues"
-  },
+  "author": "Narc Linder",
+  "license": "MIT",
   "homepage": "https://github.com/marclinder/ai-trade-runner#readme",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
     "@types/node": "^24.1.0",
-    "aws-cdk": "^2.1023.0"
+    "aws-cdk": "^2.1023.0",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@aws-cdk/aws-events": "^1.203.0",
