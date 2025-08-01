@@ -18,14 +18,28 @@ const alpaca = new Alpaca({
 });
 
 export async function getPrice(symbol: string): Promise<number | undefined> {
+  const prices = await getPrices([symbol]);
+  return prices[symbol];
+}
+
+// Fetch multiple prices at once
+export async function getPrices(symbols: string[]): Promise<Record<string, number>> {
   try {
-    const bar: AlpacaBar = await alpaca.getLatestBar(symbol);
-    return bar.ClosePrice;
+    const bars: Map<string, AlpacaBar> = await alpaca.getLatestBars(symbols);
+    const result: Record<string, number> = {};
+    for (const [symbol, bar] of bars.entries()) {
+      if (bar && bar.ClosePrice !== undefined) {
+        result[symbol] = bar.ClosePrice;
+      }
+    }
+
+    return result;
   } catch (err) {
-    console.error("getPrice error:", err);
-    return undefined;
+    console.error("getPrices error:", err);
+    return {};
   }
 }
+
 export async function placeOrder({
   symbol,
   qty,

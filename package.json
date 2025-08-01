@@ -34,6 +34,7 @@
     "aws-cdk-lib": "^2.208.0",
     "constructs": "^10.4.2",
     "dotenv": "^17.2.1",
-    "openai": "^5.11.0"
+    "openai": "^5.11.0",
+    "winston": "^3.17.0"
   }
 }

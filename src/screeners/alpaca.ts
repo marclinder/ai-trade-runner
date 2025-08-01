@@ -1,5 +1,5 @@
 import Alpaca from '@alpacahq/alpaca-trade-api';
-import { fetchMarketMovers, MarketMoversResponse } from '../utils';
+import { fetchMarketMovers, MarketMoversResponse } from '../utils/alpaca';
 import type { ScreenerPlugin } from './types';
 
 const {
@@ -22,9 +22,9 @@ const alpaca = new Alpaca({
 export const alpacaScreener: ScreenerPlugin = {
   async getTradeCandidates() {
     const movers: MarketMoversResponse = await fetchMarketMovers();
-    const tradableStocks = movers.gainers.slice(0, 3)
+    const tradableStocks = movers.gainers.slice(0, 20)
     return tradableStocks;
-  },
+  }
 
   // async getTradeCandidates() {
   //   const activeAssets:Asset[] = await alpaca.getAssets({ status: 'active' });
