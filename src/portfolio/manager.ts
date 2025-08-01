@@ -1,6 +1,7 @@
 import { getPrices } from '../brokers/alpaca';
 import Alpaca from '@alpacahq/alpaca-trade-api';
 import { logger } from '../utils/logger';
+import { AlpacaPosition } from '../screeners/types';
 
 const alpaca = new Alpaca({
     keyId: process.env.ALPACA_API_KEY!,
@@ -8,7 +9,7 @@ const alpaca = new Alpaca({
     paper: process.env.ALPACA_USE_PAPER === 'true'
 });
 
-const TAKE_PROFIT = 0.8; // 8%
+const TAKE_PROFIT = 0.05; // 5%
 const STOP_LOSS = 0.02;  // 2%
 
 export interface ExitCandidate {
@@ -22,12 +23,14 @@ export async function getHeldPositions(): Promise<string[]> {
     const positions = await alpaca.getPositions();
     return positions.map((p: any) => p.symbol);
 }
+
 export async function getExitCandidates(): Promise<ExitCandidate[]> {
-    const positions = await alpaca.getPositions();
+    const positions: AlpacaPosition[] = await alpaca.getPositions();
     const symbols = positions.map((p: any) => p.symbol);
     const prices = await getPrices(symbols);
 
-    logger.info(`getExitCandidates positions: ${JSON.stringify(positions)}`);
+    const positionsLog = positions.map(p => `${p.symbol} qty: ${p.qty}`);
+    logger.info(`getExitCandidates positions: ${JSON.stringify(positionsLog, null, 2)}`);
 
     const exitChecks = positions.map((pos: any) => {
         const symbol = pos.symbol;

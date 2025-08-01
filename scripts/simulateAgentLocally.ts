@@ -5,7 +5,7 @@ async function simulate() {
   const result = await agentHandler();
   const resultObj = JSON.parse(result.body);
   console.log(resultObj.message);
-  console.log(`orders: `, resultObj.trades.map((t: AlpacaOrder) => `${t.side.toUpperCase()} ${t.symbol} (qty ${t.qty})`).join('\n'));
+  console.log(resultObj.trades.map((t: AlpacaOrder) => `  ${t.side.toUpperCase()} ${t.symbol} (qty ${t.qty})`).join('\n'));
 }
 
 simulate();
