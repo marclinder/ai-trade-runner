@@ -26,7 +26,7 @@ export async function askLLM(symbol: string, price: number): Promise<TradeAction
     },
     {
       role: 'user',
-      content: `Given the current price of ${symbol} is $${price.toFixed(2)}, what is the best trading action? Reply with only one word: BUY, SELL, or HOLD.`,
+      content: `You are a crypto trading assistant. Based on a current price of $${price.toFixed(2)} for ${symbol}, respond with only one word: BUY, SELL, or HOLD. No explanation.`,
     },
   ];
 

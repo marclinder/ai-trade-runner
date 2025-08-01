@@ -1,6 +1,7 @@
 import { placeOrder } from '../brokers/alpaca';
 import { askLLM } from '../llm/openai';
-import { getFakeSignals, screenerAlpaca } from '../screeners/alpaca';
+import { getFakeSignals, alpacaScreener, } from '../screeners/alpaca';
+import {staticScreener} from '../screeners/static'
 
 type TradeAction = 'BUY' | 'SELL' | 'HOLD';
 
@@ -15,7 +16,8 @@ function makeTradeDecision(price: number): TradeAction {
 }
 
 export const handler = async () => {
-  const signals = await screenerAlpaca.getTradeCandidates();
+  // const signals = await alpacaScreener.getTradeCandidates();
+  const signals = await staticScreener.getTradeCandidates();
   const trades:any[] = [];
 
   for (const { symbol, price } of signals) {

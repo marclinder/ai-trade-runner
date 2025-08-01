@@ -1,6 +1,6 @@
 import type { ScreenerPlugin } from './types';
 
-export const screenerAlpaca: ScreenerPlugin = {
+export const alpacaScreener: ScreenerPlugin = {
     async getTradeCandidates() {
         // real logic
         return [
