@@ -1,12 +1,12 @@
 import { OpenAI } from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import { SymbolPrice, TradeAction } from '../../screeners/types';
+import { LLMDecision, SymbolPrice, TradeAction } from '../../screeners/types';
 
 const {
   OPENAI_API_KEY,
   OPENAI_MODEL = 'gpt-4o',
   OPENAI_TEMPERATURE = '0.2',
-  OPENAI_MAX_TOKENS = '300',
+  OPENAI_MAX_TOKENS = '500',
 } = process.env;
 
 if (!OPENAI_API_KEY) {
@@ -46,21 +46,26 @@ export async function askLLM(symbol: string, price: number): Promise<TradeAction
   return raw as TradeAction;
 }
 
-export async function askLLMBatch(
-  inputs: SymbolPrice[]
-): Promise<Record<string, TradeAction>> {
-  const list = inputs
-    .map(({ symbol, price }) => `- ${symbol} at $${price.toFixed(2)}`)
-    .join('\n');
-
+export async function askLLMBatch(inputs: SymbolPrice[]): Promise<Record<string, LLMDecision>> {
   const prompt: ChatCompletionMessageParam[] = [
     {
       role: 'system',
-      content: `You are a trading bot. For each asset, make a decision: BUY, SELL, or HOLD. Reply in JSON format: { "AAPL": "BUY", "TSLA": "HOLD", ... }`,
+      content: `You are a crypto trading assistant. For each asset, return a JSON object with the following keys:
+
+- action: one of "BUY", "SELL", "HOLD"
+- confidence: a number from 0 to 1 representing confidence in your decision
+- explanation: a one-line explanation of the rationale
+
+Example format:
+{
+  "AAPL": { "action": "BUY", "confidence": 0.8, "explanation": "Strong upward momentum and volume spike." },
+  "TSLA": { "action": "HOLD", "confidence": 0.5, "explanation": "Price is consolidating near resistance." }
+}`,
     },
     {
       role: 'user',
-      content: `Evaluate the following assets:\n${list}`,
+      content: `Evaluate the following assets with their current prices:
+${inputs.map(({ symbol, price }) => `${symbol}: $${price.toFixed(2)}`).join('\n')}`,
     },
   ];
 
@@ -75,26 +80,36 @@ export async function askLLMBatch(
   console.log('askLLMBatch → raw response:\n', raw);
   if (!raw) throw new Error('No response from LLM in batch mode');
 
-  // Strip code block formatting, e.g. ```json\n{...}\n```
   const codeBlockMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   if (codeBlockMatch) {
     raw = codeBlockMatch[1];
   }
 
-  let parsed: Record<string, string>;
+  let parsed: Record<string, any>;
   try {
     parsed = JSON.parse(raw);
   } catch (err) {
-    throw new Error(`Failed to parse batch LLM response: ${raw}`);
+    throw new Error(`Failed to parse batch LLM response:\n${raw}`);
   }
 
-  const result: Record<string, TradeAction> = {};
-  for (const [symbol, decision] of Object.entries(parsed)) {
-    const action = decision?.trim().toUpperCase();
-    if (action !== 'BUY' && action !== 'SELL' && action !== 'HOLD') {
-      throw new Error(`Unexpected LLM response for ${symbol}: ${decision}`);
+  const result: Record<string, LLMDecision> = {};
+  for (const [symbol, entry] of Object.entries(parsed)) {
+    const action = entry.action?.toUpperCase();
+    const confidence = parseFloat(entry.confidence);
+    const explanation = entry.explanation?.trim();
+
+    if (!['BUY', 'SELL', 'HOLD'].includes(action)) {
+      throw new Error(`Invalid action for ${symbol}: ${action}`);
     }
-    result[symbol] = action as TradeAction;
+    if (isNaN(confidence) || confidence < 0 || confidence > 1) {
+      throw new Error(`Invalid confidence score for ${symbol}: ${confidence}`);
+    }
+
+    result[symbol] = {
+      action: action as TradeAction,
+      confidence,
+      explanation,
+    };
   }
 
   return result;

@@ -106,3 +106,9 @@ export interface AlpacaPosition {
   change_today: string;
   qty_available: string;
 }
+
+export type LLMDecision = {
+  action: TradeAction;          // 'BUY' | 'SELL' | 'HOLD'
+  confidence: number;           // 0–1 (float)
+  explanation: string;          // One-liner from the model
+};

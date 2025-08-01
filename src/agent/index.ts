@@ -3,7 +3,7 @@ import { askLLMBatch } from '../llm/openai';
 import { alpacaScreener } from '../screeners/alpaca';
 import { getExitCandidates } from '../portfolio/manager';
 import { logger } from '../utils/logger';
-import { AgentResult, AlpacaOrder, SymbolPrice, Trade } from '../screeners/types';
+import { AgentResult, AlpacaOrder, LLMDecision, SymbolPrice, Trade } from '../screeners/types';
 
 export const handler = async ():Promise<AgentResult> => {
   if (process.env.SHOULD_RUN !== 'true') {
@@ -28,10 +28,10 @@ export const handler = async ():Promise<AgentResult> => {
 
   // Fetch current prices for all candidates
   const pricedCandidates = await getPrices(symbols);
-  const llmDecisions = await askLLMBatch(pricedCandidates);
+  const llmDecisions: Record<string, LLMDecision> = await askLLMBatch(pricedCandidates);
   
   for (const { symbol, price } of pricedCandidates) {
-    const action = llmDecisions[symbol]?.toLowerCase();
+    const action = llmDecisions[symbol]?.action;
 
     if (action === 'sell' && exitCandidates.find(c => c.symbol !== undefined)) {
       logger.info(`Skipping SELL for ${symbol} — not held`);
