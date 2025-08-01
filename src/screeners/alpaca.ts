@@ -1,6 +1,6 @@
 import Alpaca from '@alpacahq/alpaca-trade-api';
-import type { Asset, ScreenerPlugin } from './types';
-import { getPrice } from '../brokers/alpaca'; // Adjust if needed
+import { fetchMarketMovers, MarketMoversResponse } from '../utils';
+import type { ScreenerPlugin } from './types';
 
 const {
   ALPACA_API_KEY,
@@ -18,21 +18,28 @@ const alpaca = new Alpaca({
   paper: ALPACA_USE_PAPER === 'true',
 });
 
+
 export const alpacaScreener: ScreenerPlugin = {
   async getTradeCandidates() {
-    const activeAssets:Asset[] = await alpaca.getAssets({ status: 'active' });
-    const tradableStocks = activeAssets
-      .filter((a) => a.tradable && a.easy_to_borrow && a.exchange === 'NASDAQ')
-      .slice(0, 20);
-
-    const results = 
-    await Promise.all(
-      tradableStocks.map(async ({ symbol }) => {
-        const price = await getPrice(symbol);
-        return price !== undefined ? { symbol, price } : null;
-      })
-    );
-
-    return results.filter(Boolean) as { symbol: string; price: number }[];
+    const movers: MarketMoversResponse = await fetchMarketMovers();
+    const tradableStocks = movers.gainers.slice(0, 3)
+    return tradableStocks;
   },
+
+  // async getTradeCandidates() {
+  //   const activeAssets:Asset[] = await alpaca.getAssets({ status: 'active' });
+  //   const tradableStocks = activeAssets
+  //     .filter((a) => a.tradable && a.easy_to_borrow && a.exchange === 'NASDAQ')
+  //     .slice(0, 20);
+
+  //   const results = 
+  //   await Promise.all(
+  //     tradableStocks.map(async ({ symbol }) => {
+  //       const price = await getPrice(symbol);
+  //       return price !== undefined ? { symbol, price } : null;
+  //     })
+  //   );
+
+  //   return results.filter(Boolean) as { symbol: string; price: number }[];
+  // },
 };
