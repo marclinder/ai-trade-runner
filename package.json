@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "invoke:agent": "npx ts-node scripts/invokeAgent.ts",
-    "simulate:agent": "npx ts-node scripts/simulateAgentLocally.ts"
+    "simulate:agent": "npx ts-node scripts/simulateAgentLocally.ts",
+    "test:alpaca": "npx ts-node scripts/testAlpaca.ts",
+    "test:llm": "npx ts-node scripts/testLLM.ts"
   },
   "repository": {
     "type": "git",
@@ -28,6 +30,8 @@
     "@aws-cdk/aws-lambda": "^1.203.0",
     "@aws-sdk/client-lambda": "^3.858.0",
     "aws-cdk-lib": "^2.208.0",
-    "constructs": "^10.4.2"
+    "constructs": "^10.4.2",
+    "dotenv": "^17.2.1",
+    "openai": "^5.11.0"
   }
 }

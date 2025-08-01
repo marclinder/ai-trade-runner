@@ -1,4 +1,6 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { placeOrder } from '../brokers/alpaca';
+import { askLLM } from '../llm/openai';
+import { getFakeSignals, screenerAlpaca } from '../screeners/alpaca';
 
 type TradeAction = 'BUY' | 'SELL' | 'HOLD';
 
@@ -12,16 +14,21 @@ function makeTradeDecision(price: number): TradeAction {
   return 'HOLD';
 }
 
-export const handler: APIGatewayProxyHandler = async () => {
-  const price = getMockPrice();
-  const action = makeTradeDecision(price);
+export const handler = async () => {
+  const signals = await screenerAlpaca.getTradeCandidates();
+  const trades:any[] = [];
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Trade logic executed',
-      price,
-      action,
-    }),
-  };
+  for (const { symbol } of signals) {
+    const llmResponse = await askLLM(` Symbol: ${symbol}. Buy, Sell, or Hold?`);
+    
+    const action = 'buy';
+    debugger
+    if (action === 'buy' || action === 'sell') {
+      const order = await placeOrder({ symbol, qty: 1, side: action });
+      trades.push(order);
+    }
+  }
+
+  return { statusCode: 200, body: JSON.stringify({ message: 'Agent run complete', trades }) };
 };
+
