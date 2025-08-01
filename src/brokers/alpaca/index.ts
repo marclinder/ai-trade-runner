@@ -26,7 +26,6 @@ export async function getPrice(symbol: string): Promise<number | undefined> {
     return undefined;
   }
 }
-
 export async function placeOrder({
   symbol,
   qty,
@@ -36,14 +35,25 @@ export async function placeOrder({
   qty: number;
   side: "buy" | "sell";
 }) {
-  const order = await alpaca.createOrder({
-    symbol,
-    qty,
-    side,
-    type: "market",
-    time_in_force: "gtc",
-  });
+  try {
+    const order = await alpaca.createOrder({
+      symbol,
+      qty,
+      side,
+      type: "market",
+      time_in_force: "gtc",
+    });
 
-  console.log("placeOrder", order);
-  return order;
+    console.log("✅ Order placed:", order);
+    return order;
+  } catch (err: any) {
+    console.error("Failed to place order:", {
+      symbol,
+      qty,
+      side,
+      error: err?.response?.data || err?.message || err,
+    });
+
+    return null;
+  }
 }

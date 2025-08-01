@@ -38,3 +38,5 @@ coverage/
 
 # Nx (in case re-added)
 nx-report.html
+
+project-source-dump.txt
