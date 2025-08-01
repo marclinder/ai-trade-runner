@@ -1,9 +1,9 @@
-import { placeOrder } from '../brokers/alpaca';
-import { askLLM } from '../llm/openai';
+import { placeOrder, getPrices } from '../brokers/alpaca';
+import { askLLMBatch } from '../llm/openai';
 import { alpacaScreener } from '../screeners/alpaca';
-import { staticScreener } from '../screeners/static';
 import { getExitCandidates } from '../portfolio/manager';
 import { logger } from '../utils/logger';
+import { SymbolPrice } from '../screeners/types';
 
 export const handler = async () => {
   if (process.env.SHOULD_RUN !== 'true') {
@@ -12,10 +12,10 @@ export const handler = async () => {
   }
 
   const trades: any[] = [];
-  debugger
+
   // --- Close exit candidates ---
   const exitCandidates = await getExitCandidates();
-  logger.info(`exitCandidates ${exitCandidates}`);
+  logger.info(`Found ${exitCandidates.length} exit candidates`);
   for (const { symbol, currentPrice, gain } of exitCandidates) {
     logger.info(`Exiting position: ${symbol} at $${currentPrice}, gain: ${(gain * 100).toFixed(2)}%`);
     const order = await placeOrder({ symbol, qty: 1, side: 'sell' });
@@ -23,11 +23,25 @@ export const handler = async () => {
   }
 
   // --- Buy from screener ---
-  const signals = await alpacaScreener.getTradeCandidates();
-  for (const { symbol, price } of signals) {
-    const llmResponse = await askLLM(symbol, price);
-    const action = llmResponse.toLowerCase();
+  const screenerCandidates = await alpacaScreener.getTradeCandidates();
+  const symbols = screenerCandidates.map((c) => c.symbol);
 
+  // Fetch current prices for all candidates
+  const priceMap = await getPrices(symbols);
+
+  // Build { symbol, price } array
+  const pricedCandidates = symbols
+    .map((symbol) => {
+      const bar = priceMap.get(symbol);
+      if (!bar) return null;
+      return { symbol, price: bar.ClosePrice };
+    })
+    .filter(Boolean) as SymbolPrice[] ;
+
+  const llmDecisions = await askLLMBatch(pricedCandidates);
+
+  for (const { symbol, price } of pricedCandidates) {
+    const action = llmDecisions[symbol]?.toLowerCase();
     if (action === 'buy' || action === 'sell') {
       logger.info(`Placing ${action.toUpperCase()} order for ${symbol} at $${price}`);
       const order = await placeOrder({ symbol, qty: 1, side: action });

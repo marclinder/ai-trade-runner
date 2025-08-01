@@ -8,8 +8,8 @@ const alpaca = new Alpaca({
     paper: process.env.ALPACA_USE_PAPER === 'true'
 });
 
-const TAKE_PROFIT = 0.5; // 5%
-const STOP_LOSS = 0.01;  // 1%
+const TAKE_PROFIT = 0.8; // 8%
+const STOP_LOSS = 0.02;  // 2%
 
 export interface ExitCandidate {
     symbol: string;
@@ -22,24 +22,24 @@ export async function getHeldPositions(): Promise<string[]> {
     const positions = await alpaca.getPositions();
     return positions.map((p: any) => p.symbol);
 }
-
 export async function getExitCandidates(): Promise<ExitCandidate[]> {
     const positions = await alpaca.getPositions();
     const symbols = positions.map((p: any) => p.symbol);
     const prices = await getPrices(symbols);
 
-    logger.info(`getExitCandidates positions:${positions}`);
+    logger.info(`getExitCandidates positions: ${JSON.stringify(positions)}`);
 
     const exitChecks = positions.map((pos: any) => {
         const symbol = pos.symbol;
         const entryPrice = parseFloat(pos.avg_entry_price);
-        const currentPrice = prices[symbol];
+        const priceEntry = prices.find((p) => p.symbol === symbol);
 
-        if (currentPrice === undefined) {
+        if (!priceEntry) {
             logger.warn(`Price missing for symbol ${symbol}`);
             return null;
         }
 
+        const currentPrice = priceEntry.price;
         const gain = (currentPrice - entryPrice) / entryPrice;
         logger.info(`exitChecks ${symbol} entryPrice:${entryPrice} currentPrice:${currentPrice} gain:${gain}`);
 
@@ -50,7 +50,7 @@ export async function getExitCandidates(): Promise<ExitCandidate[]> {
         return null;
     });
 
-    return exitChecks.filter(Boolean);
+    return exitChecks.filter(Boolean) as ExitCandidate[];
 }
 
 export async function getAvailableCash(): Promise<number> {

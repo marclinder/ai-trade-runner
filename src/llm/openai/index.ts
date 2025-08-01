@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import { TradeAction } from '../../screeners/types';
+import { SymbolPrice, TradeAction } from '../../screeners/types';
 
 const {
   OPENAI_API_KEY,
@@ -16,14 +16,16 @@ if (!OPENAI_API_KEY) {
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 export async function askLLM(symbol: string, price: number): Promise<TradeAction> {
-  const prompt:ChatCompletionMessageParam[] = [
+  const prompt: ChatCompletionMessageParam[] = [
     {
       role: 'system',
       content: `You are a trading bot that makes one of three decisions: BUY, SELL, or HOLD.`,
     },
     {
       role: 'user',
-      content: `You are a crypto trading assistant. Based on a current price of $${price.toFixed(2)} for ${symbol}, respond with only one word: BUY, SELL, or HOLD. No explanation.`,
+      content: `You are a crypto trading assistant. Based on a current price of $${price.toFixed(
+        2
+      )} for ${symbol}, respond with only one word: BUY, SELL, or HOLD. No explanation.`,
     },
   ];
 
@@ -35,9 +37,60 @@ export async function askLLM(symbol: string, price: number): Promise<TradeAction
   });
 
   const raw = response.choices[0].message.content?.trim().toUpperCase();
-  console.log('askLLM', symbol, price);
-  console.log('askLLM - response', raw);
+  console.log('askLLM', symbol, price, '→', raw);
 
-  if (raw !== 'BUY' && raw !== 'SELL' && raw !== 'HOLD') throw new Error(`Unexpected LLM response: ${raw}`);
+  if (raw !== 'BUY' && raw !== 'SELL' && raw !== 'HOLD') {
+    throw new Error(`Unexpected LLM response for ${symbol}: ${raw}`);
+  }
+
   return raw as TradeAction;
+}
+
+export async function askLLMBatch(
+  inputs: SymbolPrice[]
+): Promise<Record<string, TradeAction>> {
+  const list = inputs
+    .map(({ symbol, price }) => `- ${symbol} at $${price.toFixed(2)}`)
+    .join('\n');
+
+  const prompt: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `You are a trading bot. For each asset, make a decision: BUY, SELL, or HOLD. Reply in JSON format: { "AAPL": "BUY", "TSLA": "HOLD", ... }`,
+    },
+    {
+      role: 'user',
+      content: `Evaluate the following assets:\n${list}`,
+    },
+  ];
+
+  const response = await openai.chat.completions.create({
+    model: OPENAI_MODEL,
+    temperature: parseFloat(OPENAI_TEMPERATURE),
+    max_tokens: parseInt(OPENAI_MAX_TOKENS),
+    messages: prompt,
+  });
+
+  const raw = response.choices[0].message.content?.trim();
+  console.log('askLLMBatch → raw response:', raw);
+  debugger;
+  if (!raw) throw new Error('No response from LLM in batch mode');
+
+  let parsed: Record<string, string>;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`Failed to parse batch LLM response: ${raw}`);
+  }
+
+  const result: Record<string, TradeAction> = {};
+  for (const [symbol, decision] of Object.entries(parsed)) {
+    const action = decision?.trim().toUpperCase();
+    if (action !== 'BUY' && action !== 'SELL' && action !== 'HOLD') {
+      throw new Error(`Unexpected LLM response for ${symbol}: ${decision}`);
+    }
+    result[symbol] = action as TradeAction;
+  }
+
+  return result;
 }
