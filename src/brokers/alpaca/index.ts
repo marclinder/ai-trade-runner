@@ -1,6 +1,6 @@
 import Alpaca from "@alpacahq/alpaca-trade-api";
 import { AlpacaBar } from "@alpacahq/alpaca-trade-api/dist/resources/datav2/entityv2";
-import { SymbolPrice } from "../../screeners/types";
+import { AlpacaOrder, AlpacaOrderRequest, SymbolPrice } from "../../screeners/types";
 
 const {
   ALPACA_API_KEY,
@@ -42,26 +42,16 @@ export async function getPrices(symbols: string[]): Promise<SymbolPrice[]> {
   }
 }
 
-
-export async function placeOrder({
-  symbol,
-  qty,
-  side,
-}: {
-  symbol: string;
-  qty: number;
-  side: "buy" | "sell";
-}) {
+export async function placeOrder( {symbol, qty, side}: AlpacaOrderRequest): Promise<AlpacaOrder | null> {
   try {
-    const order = await alpaca.createOrder({
+    const order:AlpacaOrder = await alpaca.createOrder({
       symbol,
       qty,
       side,
       type: "market",
       time_in_force: "gtc",
     });
-
-    console.log("✅ Order placed:", order);
+    console.log("✅ Order placed:", order.symbol, order.qty, order.side);
     return order;
   } catch (err: any) {
     console.error("Failed to place order:", {

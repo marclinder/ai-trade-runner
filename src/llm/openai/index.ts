@@ -71,10 +71,15 @@ export async function askLLMBatch(
     messages: prompt,
   });
 
-  const raw = response.choices[0].message.content?.trim();
-  console.log('askLLMBatch → raw response:', raw);
-  debugger;
+  let raw = response.choices[0].message.content?.trim();
+  console.log('askLLMBatch → raw response:\n', raw);
   if (!raw) throw new Error('No response from LLM in batch mode');
+
+  // Strip code block formatting, e.g. ```json\n{...}\n```
+  const codeBlockMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (codeBlockMatch) {
+    raw = codeBlockMatch[1];
+  }
 
   let parsed: Record<string, string>;
   try {

@@ -3,23 +3,23 @@ import { askLLMBatch } from '../llm/openai';
 import { alpacaScreener } from '../screeners/alpaca';
 import { getExitCandidates } from '../portfolio/manager';
 import { logger } from '../utils/logger';
-import { SymbolPrice } from '../screeners/types';
+import { AgentResult, AlpacaOrder, SymbolPrice, Trade } from '../screeners/types';
 
-export const handler = async () => {
+export const handler = async ():Promise<AgentResult> => {
   if (process.env.SHOULD_RUN !== 'true') {
     logger.info('Agent run aborted — SHOULD_RUN is not set to true.');
     return { statusCode: 200, body: 'SHOULD_RUN=false, skipping execution.' };
   }
 
-  const trades: any[] = [];
-
+  const trades: AlpacaOrder[] = [];
   // --- Close exit candidates ---
   const exitCandidates = await getExitCandidates();
   logger.info(`Found ${exitCandidates.length} exit candidates`);
   for (const { symbol, currentPrice, gain } of exitCandidates) {
     logger.info(`Exiting position: ${symbol} at $${currentPrice}, gain: ${(gain * 100).toFixed(2)}%`);
     const order = await placeOrder({ symbol, qty: 1, side: 'sell' });
-    trades.push(order);
+    if(order)
+      trades.push(order);
   }
 
   // --- Buy from screener ---
@@ -27,26 +27,25 @@ export const handler = async () => {
   const symbols = screenerCandidates.map((c) => c.symbol);
 
   // Fetch current prices for all candidates
-  const priceMap = await getPrices(symbols);
-
-  // Build { symbol, price } array
-  const pricedCandidates = symbols
-    .map((symbol) => {
-      const bar = priceMap.get(symbol);
-      if (!bar) return null;
-      return { symbol, price: bar.ClosePrice };
-    })
-    .filter(Boolean) as SymbolPrice[] ;
-
+  const pricedCandidates = await getPrices(symbols);
   const llmDecisions = await askLLMBatch(pricedCandidates);
-
+  
   for (const { symbol, price } of pricedCandidates) {
     const action = llmDecisions[symbol]?.toLowerCase();
+
+    if (action === 'sell' && exitCandidates.find(c => c.symbol !== undefined)) {
+      logger.info(`Skipping SELL for ${symbol} — not held`);
+      continue;
+    }
+
     if (action === 'buy' || action === 'sell') {
       logger.info(`Placing ${action.toUpperCase()} order for ${symbol} at $${price}`);
       const order = await placeOrder({ symbol, qty: 1, side: action });
-      trades.push(order);
-    } else {
+      if(order)
+        trades.push(order);
+    }
+
+    if (action === 'hold') {
       logger.info(`LLM advised to HOLD ${symbol}`);
     }
   }
