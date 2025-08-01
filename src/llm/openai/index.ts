@@ -1,9 +1,6 @@
-// src/plugins/llm-openai/index.ts
 import { OpenAI } from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import dotenv from 'dotenv';
 import { TradeAction } from '../../screeners/types';
-dotenv.config(); // Load from root .env
 
 const {
   OPENAI_API_KEY,
@@ -38,6 +35,9 @@ export async function askLLM(symbol: string, price: number): Promise<TradeAction
   });
 
   const raw = response.choices[0].message.content?.trim().toUpperCase();
+  console.log('askLLM', symbol, price);
+  console.log('askLLM - response', raw);
+
   if (raw !== 'BUY' && raw !== 'SELL' && raw !== 'HOLD') throw new Error(`Unexpected LLM response: ${raw}`);
   return raw as TradeAction;
 }

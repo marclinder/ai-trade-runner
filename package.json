@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Modular AI-augmented trading bot for stocks, crypto, and options using Alpaca, AWS CDK, and Nx.",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "invoke:agent": "npx ts-node scripts/invokeAgent.ts",
@@ -21,6 +22,7 @@
     "@types/aws-lambda": "^8.10.152",
     "@types/node": "^24.1.0",
     "aws-cdk": "^2.1023.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
   "dependencies": {

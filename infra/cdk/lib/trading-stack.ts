@@ -6,11 +6,6 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as path from 'path';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
-import * as dotenv from 'dotenv';
-
-// Load the .env from the root directory
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
 
 export class TradingStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -20,7 +15,7 @@ export class TradingStack extends cdk.Stack {
       functionName: 'AgentLambda',
       entry: path.resolve(__dirname, '../../../src/agent/index.ts'),
       handler: 'handler',
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       bundling: {
         sourceMap: true,
         sourcesContent: true,
