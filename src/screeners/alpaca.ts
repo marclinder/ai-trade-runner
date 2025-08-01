@@ -4,12 +4,12 @@ export const screenerAlpaca: ScreenerPlugin = {
     async getTradeCandidates() {
         // real logic
         return [
-            { symbol: 'AAPL' },
-            { symbol: 'ETH/USD' },
+            { symbol: 'AAPL', price: 1 },
+            { symbol: 'ETH/USD', price: 1 },
         ];
     }
 };
 
 export async function getFakeSignals() {
-  return [{ symbol: 'FIG', confidence: 0.93 }];
+  return [{ symbol: 'FIG', price: 1 }];
 }

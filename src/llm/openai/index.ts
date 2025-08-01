@@ -1,6 +1,8 @@
 // src/plugins/llm-openai/index.ts
 import { OpenAI } from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import dotenv from 'dotenv';
+import { TradeAction } from '../../screeners/types';
 dotenv.config(); // Load from root .env
 
 const {
@@ -16,16 +18,26 @@ if (!OPENAI_API_KEY) {
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-export async function askLLM(prompt: string): Promise<string> {
+export async function askLLM(symbol: string, price: number): Promise<TradeAction> {
+  const prompt:ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `You are a trading bot that makes one of three decisions: BUY, SELL, or HOLD.`,
+    },
+    {
+      role: 'user',
+      content: `Given the current price of ${symbol} is $${price.toFixed(2)}, what is the best trading action? Reply with only one word: BUY, SELL, or HOLD.`,
+    },
+  ];
+
   const response = await openai.chat.completions.create({
     model: OPENAI_MODEL,
     temperature: parseFloat(OPENAI_TEMPERATURE),
     max_tokens: parseInt(OPENAI_MAX_TOKENS),
-    messages: [{ role: 'user', content: prompt }],
+    messages: prompt,
   });
-  const responseContent = response.choices[0]?.message?.content?.trim() ?? '';
-  console.log('askLLM ');
-  console.log('   prompt:', prompt);
-  console.log('   responseContent:', responseContent);
-  return responseContent;
+
+  const raw = response.choices[0].message.content?.trim().toUpperCase();
+  if (raw !== 'BUY' && raw !== 'SELL' && raw !== 'HOLD') throw new Error(`Unexpected LLM response: ${raw}`);
+  return raw as TradeAction;
 }

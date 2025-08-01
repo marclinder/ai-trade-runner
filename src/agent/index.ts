@@ -18,11 +18,10 @@ export const handler = async () => {
   const signals = await screenerAlpaca.getTradeCandidates();
   const trades:any[] = [];
 
-  for (const { symbol } of signals) {
-    const llmResponse = await askLLM(` Symbol: ${symbol}. Buy, Sell, or Hold?`);
+  for (const { symbol, price } of signals) {
+    const llmResponse = await askLLM(symbol, price);
     
     const action = 'buy';
-    debugger
     if (action === 'buy' || action === 'sell') {
       const order = await placeOrder({ symbol, qty: 1, side: action });
       trades.push(order);
