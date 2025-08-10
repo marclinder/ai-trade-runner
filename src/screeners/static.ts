@@ -1,7 +1,7 @@
 import { getPrice, getPrices } from "../brokers/alpaca";
 import type { ScreenerPlugin, SymbolPrice } from './types';
 
-export const staticScreener = {
+export const staticScreener: ScreenerPlugin = {
   async getTradeCandidates() {
     const symbols = ["AAPL", "TSLA"];
 

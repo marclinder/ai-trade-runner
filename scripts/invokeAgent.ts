@@ -4,7 +4,7 @@ import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { fromIni } from "@aws-sdk/credential-provider-ini";
 
 // Set your function name and AWS region
-const FUNCTION_NAME = "AgentLambda";
+const FUNCTION_NAME = "AgentLambda-stage";
 const REGION = "us-east-1";
 const PROFILE = "trade-bot";
 

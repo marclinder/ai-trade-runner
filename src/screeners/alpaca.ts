@@ -19,7 +19,7 @@ const alpaca = new Alpaca({
 });
 
 
-export const alpacaScreener = {
+export const alpacaScreener: ScreenerPlugin = {
   async getTradeCandidates() {
     const movers: MarketMoversResponse = await fetchMarketMovers();
     const tradableStocks = movers.gainers.slice(0, 20)
